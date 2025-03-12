@@ -115,11 +115,11 @@ class ReleaseManager {
 
     const args = `--tag ${tag} ${configArg}`;
 
-    console.log(args);
+    console.log(args, `bun publish ${args} --dry-run`, `bun publish --tag ${tag} ${configArg} --dry-run`);
 
     for (const path of packagesPaths) {
       try {
-        await Bun.$`bun publish ${args} --dry-run`.cwd(path);
+        await Bun.$`bun publish --tag ${tag} ${configArg} --dry-run`.cwd(path);
       } catch (e) {
         throw new Error(`An unknown error was occurred with path - ${path}: ${e as string}`);
       }
