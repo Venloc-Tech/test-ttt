@@ -11,14 +11,14 @@
     },
     "packages/package-a": {
       "name": "@venloc-tech/package-a",
-      "version": "1.2.5",
+      "version": "1.2.6",
       "dependencies": {
         "@venloc-tech/package-b": "workspace:*"
       }
     },
     "packages/package-b": {
       "name": "@venloc-tech/package-b",
-      "version": "1.2.5"
+      "version": "1.2.6"
     }
   },
   "packages": {
