@@ -4,12 +4,20 @@
   "type": "module",
   "version": "1.2.6",
   "private": true,
+  "eslintConfig": "eslint.config.ts",
   "workspaces": [
     "packages/*"
   ],
   "devDependencies": {
+    "@eslint/compat": "^1.2.7",
+    "@stylistic/eslint-plugin-js": "^4.2.0",
+    "@stylistic/eslint-plugin-jsx": "^4.2.0",
     "@types/bun": "latest",
+    "@venloc-tech/typelint": "^1.0.0",
+    "eslint": "^9.22.0",
+    "jiti": "^2.4.2",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
   }
 }

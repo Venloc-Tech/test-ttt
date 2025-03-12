@@ -9,79 +9,159 @@
 * 5) Делаем коммит и пушим в репозиторий
 */
 
+/*
+* Как будет происходить кэнэри релиз
+* 1) Workflow будет происходить после мерджа RR (кроме обновления зависимостей)
+* 2) Формирование версии
+* 3) Замена текущей версии на сформированную,
+*    в пакетах и bun.lock workspace
+* 4) Публикация пакетов
+*/
 
-import rootPkg from "../package.json" with {type: "json"}
-import BunLock from "../bun.lock"
-import { getEnv } from "./helpers/get-env.js";
-import type { BunLockFile } from "./types/bunlock.js";
+
+import { cwd } from "process";
 import { join } from "path";
+
+import { dateFormatter } from "./helpers/date-format.js";
+import type { BunLockFile } from "./types/bunlock.js";
+import { getEnv } from "./helpers/get-env.js";
+
+import rootPkg from "../package.json" with {type: "json"};
+import BunLock from "../bun.lock";
+
 
 type PackageJson = {
   name: string;
   version: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+type PublishPlatform = "npm" | "github" | string
 
-const updateVersion = async (lock: BunLockFile, version: string) => {
-  const info: Record<string, string[]> = {
-    paths: [],
-    names: []
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getRegistry = (platform: PublishPlatform) => {
+  switch (platform) {
+    case "github":
+      return "https://npm.pkg.github.com";
+    case "npm":
+      return "https://registry.npmjs.org/";
+
+    default:
+      throw new Error(`Unsupported platform: ${platform}`);
+  }
+};
+
+
+class ReleaseManager {
+  static async getCanaryVersion(latest: string) {
+    const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
+    const previousSha = await Bun.file("LATEST_CANARY").text();
+
+    if (sha === previousSha) {
+      console.log("[LOG]: Current commit sha is equal to latest published canary sha");
+      return process.exit(0);
+    }
+
+    const date = dateFormatter.format(new Date());
+
+    return `${latest}-${date}-${sha}`;
   }
 
-  Object.entries(lock.workspaces)
-    .slice(1)
-    .forEach(([path, workspace]) => {
-      info.paths.push(path);
-      info.names.push(workspace.name as string);
-    });
+  static getVersion(latest: string) {
+    const next = getEnv("NEXT_VERSION", true);
+    const extraVersion = getEnv("EXTRA_VERSION", false);
+    const newVersion = rootPkg.version;
 
-  /* Rewrite bun.lock workspace packages versions */
-  info.paths.forEach(path => lock.workspaces[path].version = version)
+    const version = extraVersion ? extraVersion : newVersion;
+    
+    if (Bun.semver.order(latest, version) !== -1) throw new Error(`Release version must be greater than latest: ${latest}`);
+    if (Bun.semver.order(version, next) !== -1) throw new Error(`Next version must be greater than release version: ${version}`);
 
-  await Bun.file("bun.lock").write(JSON.stringify(lock, null, 2));
+    return [version, next];
+  }
 
-  /* Rewrite packages versions */
-  for (const path of info.paths) {
-    const file = Bun.file(join(path, "package.json"))
+  static getPackagesPaths(lock: BunLockFile) {
+    return Object.keys(lock.workspaces).slice(1);
+  }
+  
+  static async update(lock: BunLockFile, packagesPaths: string[], version: string) {
+    /* Rewrite bun.lock workspace packages versions */
+    packagesPaths.forEach(path => lock.workspaces[path].version = version);
 
-    let pkg = await file.json() as PackageJson;
+    await Bun.file("bun.lock").write(JSON.stringify(lock, null, 2));
 
-    pkg.version = version;
+    /* Rewrite packages versions */
+    for (const path of packagesPaths) {
+      const file = Bun.file(join(path, "package.json"));
 
-    await file.write(JSON.stringify(pkg, null, 2))
+      const pkg = await file.json() as PackageJson;
+
+      console.log(`[LOG]: Change ${pkg.name} version: ${pkg.version} -> (${pkg.version})`);
+
+      pkg.version = version;
+
+      await file.write(JSON.stringify(pkg, null, 2));
+    }
+  }
+  
+  static async publish(packagesPaths: string[], isCanary: boolean) {
+    const tag = isCanary ? "canary" : "latest";
+
+    const configPath = join(cwd(), "bunfig.toml");
+
+    const isConfigExist = await Bun.file(configPath).exists();
+
+    const configArg = isConfigExist ? `-c ${configPath}` : "";
+
+    const args = `${configArg} --tag ${tag}`;
+
+    for (const path of packagesPaths) {
+      try {
+        await Bun.$`bun publish ${args}`.cwd(path);
+      } catch (e) {
+        throw new Error(`An unknown error was occurred with path - ${path}: ${e as string}`);
+      }
+    }
+  }
+
+  static async save(version: string, isCanary: boolean) {
+    const file = isCanary ? "LATEST_CANARY" : "LATEST";
+
+    await Bun.file(file).write(version);
   }
 }
 
-const publishVersion = async () => {
+const main = async (): Promise<void> => {
+  if (!await Bun.file("LATEST").exists()) throw new Error("Couldn't find LATEST file");
+  if (!await Bun.file("LATEST_CANARY").exists()) throw new Error("Couldn't find LATEST_CANARY file");
 
-}
+  const isCanary = getEnv("IS_CANARY", true) === "true";
+  const latest = await Bun.file("LATEST").text();
 
-const main = async () => {
-  const tag = getEnv("RELEASE_TAG", true)
+  const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
 
-  if (tag === "canary") {
-    await updateVersion(BunLock, tag)
-
-    await Bun.$`bun ...`
+  const [version, next] = isCanary
+    ? [await ReleaseManager.getCanaryVersion(latest), undefined]
+    : ReleaseManager.getVersion(latest);
+  
+  if (isCanary) {
+    const canaryStopList = getEnv("CANARY_STOP_VERSIONS", false).split("|") || [];
+    
+    if (canaryStopList.length !== 0 && canaryStopList.includes(version)) {
+      console.log(`[LOG]: This version (${latest}) in canary stop list (won't be publish)`);
+      process.exit(0);
+    }
   }
 
-  const next = getEnv("NEXT_TAG", true)
+  await ReleaseManager.update(BunLock, packagesPaths, version);
+  await ReleaseManager.publish(packagesPaths, isCanary);
+  await ReleaseManager.save(version, isCanary);
 
-  const latest = await Bun.file("LATEST").text()
+  if (!isCanary) {
+    /* Write next version in root package.json */
+    rootPkg.version = next as string;
+    await Bun.file("package.json").write(JSON.stringify(rootPkg, null, 2));
+  }
+};
 
-  // if (!tag.startsWith("v")) throw new Error(`Release tag must be a valid version eg "v1.0.0"`)
-  // if (!next.startsWith("v")) throw new Error(`Release tag must be a valid version eg "v1.0.0"`)
-
-  if (tag !== rootPkg.version) throw new Error(`Tag must be match with root package version: tag: ${tag} root: ${rootPkg.version}`)
-
-  if (Bun.semver.order(latest, tag) !== -1) throw new Error(`Release tag must be greater than latest: ${latest}`)
-  if (Bun.semver.order(tag, next) !== -1) throw new Error(`Next tag must be greater than release tag: ${tag}`)
-
-  await updateVersion(BunLock, tag);
-
-  /* Write next version in root package.json */
-  rootPkg.version = next;
-  await Bun.file("package.json").write(JSON.stringify(rootPkg, null, 2));
-}
-
-await main()
+await main();

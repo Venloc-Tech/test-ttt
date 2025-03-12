@@ -1,28 +1,36 @@
 name: Release
 
 env:
-  RELEASE_TAG: ${{ github.event.inputs.tag || 'canary' }}
-  NEXT_TAG: ${{ github.event.inputs.next || 'canary' }}
+  IS_CANARY: ${{ github.event.input.isCanary }}
+  NEXT_VERSION: ${{ github.event.inputs.next || '' }}
+  EXTRA_VERSION: ${{ github.event.inputs.unexcpectedVersion || '' }}
+  CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS }}
+  GIT_ADD: ${{ env.IS_CANARY == 'true' && 'LATEST_CANARY' || '.' }}
+  GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
 
 on:
   schedule:
     - cron: "0 3 * * *" # every day at 6AM (GMT+3)
   workflow_dispatch:
     inputs:
-      tag:
-        type: string
-        description: What is the release tag (e.g. "1.0.2", "canary")?
+      isCanary:
+        description: Is this release canary?
+        type: boolean
         required: true
       next:
-        type: string
         description: What is the next release tag (e.g. "1.1.0")? Required in non canary Release
+        type: string
+        required: false
+      unexcpectedVersion:
+        description: WARNING!!! This input is used for unexpected versions. For example, release should be with version 1.1.19, but you have breaking changes for release and set 1.2.0
+        type: string
         required: false
 
 jobs:
-  npm:
-    name: Release on npm
+  github:
+    name: Release on github
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'canary' }}
+    if: ${{ github.repository == env.GITHUB_REPOSITORY }}
 
     steps:
       - name: Checkout
@@ -32,7 +40,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "v1.2.5"
+          bun-version: 'v1.2.5'
       - name: Install Dependencies
         run: bun install
       - name: Release
@@ -42,6 +50,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add .
+          git add $GIT_ADD
           git commit -m "Bump version"
           git push -f
