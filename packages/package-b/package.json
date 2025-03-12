@@ -1,0 +1,17 @@
+{
+  "name": "@venloc-tech/package-b",
+  "module": "src/index.ts",
+  "type": "module",
+  "main": "src/index.ts",
+  "version": "v1.3.15",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  }
+}

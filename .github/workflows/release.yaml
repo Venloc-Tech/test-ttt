@@ -1,0 +1,47 @@
+name: Release
+
+env:
+  RELEASE_VERSION ${{ github.event.inputs.tag || 'canary' }}
+  NEXT_VERSION ${{ github.event.inputs.next || 'canary' }}
+
+on:
+  schedule:
+    - cron "0 3 * * *" # every day at 6AM (GMT+3)
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        description: What is the release tag (e.g. "1.0.2", "canary")?
+        required: true
+      next:
+        type: string
+        description: What is the next release tag (e.g. "1.1.0")? Required in non canary Release
+        required: false
+
+jobs:
+  npm:
+    name: Release on npm
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'canary' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "v1.2.5"
+      - name: Install Dependencies
+        run: bun install
+      - name: Release
+        run: bun scripts/release.ts
+      - name: Apply changes
+        if: ${{ github.event.inputs.tag != 'canary' }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Bump version"
+          git push -f

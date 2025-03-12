@@ -1,0 +1,15 @@
+{
+  "name": "build-bin-workspace",
+  "module": "index.ts",
+  "type": "module",
+  "version": "v1.4.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2"
+  }
+}
