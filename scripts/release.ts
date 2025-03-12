@@ -136,6 +136,7 @@ const main = async (): Promise<void> => {
   if (!await Bun.file("LATEST_CANARY").exists()) throw new Error("Couldn't find LATEST_CANARY file");
 
   const isCanary = getEnv("IS_CANARY", true) === "true";
+  console.log("DEBUG IS_CANARY: ", isCanary);
   const latest = await Bun.file("LATEST").text();
 
   const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
