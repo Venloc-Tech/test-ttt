@@ -53,9 +53,6 @@ jobs:
         run: bun scripts/release.ts
       - name: Apply changes
         if: ${{ github.event.inputs.tag != 'canary' }}
-        uses: actions/checkout@v4
-        with:
-          ref: main
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
