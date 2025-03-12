@@ -7,6 +7,7 @@ env:
   CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS }}
   GIT_ADD: ${{ github.event.inputs.isCanary == 'true' && 'LATEST_CANARY' || '.' }}
   GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
+  SHA_COMMIT: ${{ github.sha }}
 
 on:
   schedule:
