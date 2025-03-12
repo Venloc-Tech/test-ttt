@@ -30,6 +30,9 @@ jobs:
   github:
     name: Release on github
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     # if: ${{ github.repository == env.GITHUB_REPOSITORY }}
 
     steps:
