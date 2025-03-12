@@ -2,7 +2,7 @@
   "name": "@venloc-tech/package-a",
   "module": "src/index.ts",
   "type": "module",
-  "version": "v1.3.15",
+  "version": "1.2.5",
   "exports": {
     ".": {
       "import": {

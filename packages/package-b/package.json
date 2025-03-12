@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "main": "src/index.ts",
-  "version": "v1.3.15",
+  "version": "1.2.5",
   "files": [
     "dist"
   ],

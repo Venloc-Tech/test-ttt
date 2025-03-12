@@ -72,7 +72,7 @@ const main = async () => {
   // if (!tag.startsWith("v")) throw new Error(`Release tag must be a valid version eg "v1.0.0"`)
   // if (!next.startsWith("v")) throw new Error(`Release tag must be a valid version eg "v1.0.0"`)
 
-  if (tag !== rootPkg.version) throw new Error(`Tag must be match with root package version`)
+  if (tag !== rootPkg.version) throw new Error(`Tag must be match with root package version: tag: ${tag} root: ${rootPkg.version}`)
 
   if (Bun.semver.order(latest, tag) !== -1) throw new Error(`Release tag must be greater than latest: ${latest}`)
   if (Bun.semver.order(tag, next) !== -1) throw new Error(`Next tag must be greater than release tag: ${tag}`)

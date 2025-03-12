@@ -2,7 +2,7 @@
   "name": "build-bin-workspace",
   "module": "index.ts",
   "type": "module",
-  "version": "v1.4.0",
+  "version": "1.2.6",
   "private": true,
   "workspaces": [
     "packages/*"
