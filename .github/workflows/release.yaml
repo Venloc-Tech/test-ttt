@@ -4,7 +4,7 @@ env:
   IS_CANARY: ${{ github.event.inputs.isCanary }}
   NEXT_VERSION: ${{ github.event.inputs.next || '' }}
   EXTRA_VERSION: ${{ github.event.inputs.unexcpectedVersion || '' }}
-  CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS }}
+  CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS || '' }}
   GIT_ADD: ${{ github.event.inputs.isCanary == 'true' && 'LATEST_CANARY' || '.' }}
   GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
   SHA_COMMIT: ${{ github.sha }}
