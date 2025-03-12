@@ -58,4 +58,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add $GIT_ADD
           git commit -m "Bump version"
-          git push -f
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
