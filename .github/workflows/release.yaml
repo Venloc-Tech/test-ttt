@@ -1,12 +1,12 @@
 name: Release
 
 env:
-  RELEASE_VERSION ${{ github.event.inputs.tag || 'canary' }}
-  NEXT_VERSION ${{ github.event.inputs.next || 'canary' }}
+  RELEASE_VERSION: ${{ github.event.inputs.tag || 'canary' }}
+  NEXT_VERSION: ${{ github.event.inputs.next || 'canary' }}
 
 on:
   schedule:
-    - cron "0 3 * * *" # every day at 6AM (GMT+3)
+    - cron: "0 3 * * *" # every day at 6AM (GMT+3)
   workflow_dispatch:
     inputs:
       tag:
