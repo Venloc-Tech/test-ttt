@@ -1,8 +1,8 @@
 name: Release
 
 env:
-  RELEASE_VERSION: ${{ github.event.inputs.tag || 'canary' }}
-  NEXT_VERSION: ${{ github.event.inputs.next || 'canary' }}
+  RELEASE_TAG: ${{ github.event.inputs.tag || 'canary' }}
+  NEXT_TAG: ${{ github.event.inputs.next || 'canary' }}
 
 on:
   schedule:
