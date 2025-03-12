@@ -125,7 +125,7 @@ class ReleaseManager {
       }
     }
 
-    process.exit(1);
+    // Process.exit(1);
   }
 
   static async save(version: string, isCanary: boolean) {
