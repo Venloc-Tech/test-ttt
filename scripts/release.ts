@@ -96,7 +96,7 @@ class ReleaseManager {
 
       const pkg = await file.json() as PackageJson;
 
-      console.log(`[LOG]: Change ${pkg.name} version: ${pkg.version} -> (${pkg.version})`);
+      console.log(`[LOG]: Change ${pkg.name} version: ${pkg.version} -> (${version})`);
 
       pkg.version = version;
 
@@ -113,7 +113,7 @@ class ReleaseManager {
 
     const configArg = isConfigExist ? `-c ${configPath}` : "";
 
-    const args = `${configArg} --tag ${tag}`;
+    const args = `--tag ${tag} ${configArg}`;
 
     console.log(args);
 
