@@ -115,13 +115,17 @@ class ReleaseManager {
 
     const args = `${configArg} --tag ${tag}`;
 
+    console.log(args);
+
     for (const path of packagesPaths) {
       try {
-        await Bun.$`bun publish ${args}`.cwd(path);
+        await Bun.$`bun publish ${args} --dry-run`.cwd(path);
       } catch (e) {
         throw new Error(`An unknown error was occurred with path - ${path}: ${e as string}`);
       }
     }
+
+    process.exit(1);
   }
 
   static async save(version: string, isCanary: boolean) {
@@ -137,7 +141,7 @@ const main = async (): Promise<void> => {
 
   const isCanary = getEnv("IS_CANARY", true) === "true";
   console.log("DEBUG IS_CANARY: ", isCanary, isCanary ? "canary" : "latest");
-  process.exit(0);
+
   const latest = await Bun.file("LATEST").text();
 
   const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
