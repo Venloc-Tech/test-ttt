@@ -30,7 +30,7 @@ jobs:
   github:
     name: Release on github
     runs-on: ubuntu-latest
-    if: ${{ github.repository == env.GITHUB_REPOSITORY }}
+    # if: ${{ github.repository == env.GITHUB_REPOSITORY }}
 
     steps:
       - name: Checkout
