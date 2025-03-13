@@ -1,12 +1,12 @@
 name: Release
 
 env:
-  IS_CANARY: ${{ github.event.inputs.isCanary }}
+  IS_CANARY: ${{ github.event.inputs.isCanary || true }}
   NEXT_VERSION: ${{ github.event.inputs.next || '' }}
   EXTRA_VERSION: ${{ github.event.inputs.unexcpectedVersion || '' }}
   CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS || '' }}
   GIT_ADD: ${{ github.event.inputs.isCanary == 'true' && 'LATEST_CANARY' || '.' }}
-  GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
+  GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSIORY }}
   SHA_COMMIT: ${{ github.sha }}
 
 on:
@@ -31,6 +31,7 @@ jobs:
   github:
     name: Release on github
     runs-on: ubuntu-latest
+    if: ${{ github.repository == env.GITHUB_REPOSITORY }}
     permissions:
       contents: write
       packages: write

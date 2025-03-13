@@ -1,6 +1,6 @@
 import { delay } from "./delay.js";
 
-type CurlResult<T = any> = {
+type CurlResult<T = never> = {
   status: number;
   statusText: string;
   error: Error | undefined;
@@ -21,29 +21,29 @@ type CurlOptions = {
 const cacheResults = new Map<string, CurlResult>();
 
 export const curl = async <T>(url: string, options: CurlOptions = {}): Promise<CurlResult<T>> => {
-  const  retries = options["retries"] || 3;
+  const retries = options["retries"] || 3;
   const cache = options["cache"] || false;
-  const config = options["config"] || {method: "GET"}
+  const config = options["config"] || { method: "GET" };
 
 
-  const cacheKey = `${config.method} ${url}`
+  const cacheKey = `${config.method} ${url}`;
 
   if (cache) {
-    if (cacheResults.has(cacheKey)) return cacheResults.get(cacheKey) as CurlResult<T>
+    if (cacheResults.has(cacheKey)) return cacheResults.get(cacheKey) as CurlResult<T>;
   }
 
-    let output = "json";
+  let output = "json";
 
   if (options["type"]) {
     if (Object.keys(options.type).length > 1)
-      throw new Error(`Invalid type option, only one can be used, received: ${options.type}`);
+      throw new Error(`Invalid type option, only one can be used, received: ${JSON.stringify(options.type, null, 2)}`);
 
     output = Object.keys(options.type)[0];
   }
 
-  let status: number = 200;
-  let statusText: string = "";
-  let body;
+  let status = 200;
+  let statusText = "";
+  let body: T;
   let error;
 
   for (let i = 0; i < retries; i++) {
@@ -53,21 +53,21 @@ export const curl = async <T>(url: string, options: CurlOptions = {}): Promise<C
     try {
       response = await fetch(url, config);
     } catch (cause) {
-      // debugLog("$", "curl", href, "-> error");
+      // DebugLog("$", "curl", href, "-> error");
       error = new Error(`Fetch failed: ${config.method} ${url}`, { cause });
       continue;
     }
 
     status = response["status"];
     statusText = response["statusText"];
-    // debugLog("$", "curl", href, "->", status, statusText);
+    // DebugLog("$", "curl", href, "->", status, statusText);
 
     const ok = response["ok"];
 
     try {
-      if (output === "buffer" && ok) body = await response.arrayBuffer();
-      else if (output === "json" && ok) body = await response.json();
-      else body = await response.text();
+      if (output === "buffer" && ok) body = await response.arrayBuffer() as T;
+      else if (output === "json" && ok) body = await response.json() as T;
+      else body = await response.text() as T;
     } catch (cause) {
       error = new Error(`Fetch failed: ${config.method} ${url}`, { cause });
       continue;
@@ -82,7 +82,7 @@ export const curl = async <T>(url: string, options: CurlOptions = {}): Promise<C
   }
 
   if (cache) {
-    cacheResults.set(cacheKey, { status, statusText, error, body })
+    cacheResults.set(cacheKey, { status, statusText, error, body });
   }
 
   return {
@@ -91,4 +91,4 @@ export const curl = async <T>(url: string, options: CurlOptions = {}): Promise<C
     error,
     body,
   } as CurlResult<T>;
-}
+};

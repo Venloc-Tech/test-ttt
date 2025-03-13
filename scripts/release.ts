@@ -28,6 +28,7 @@ import { getEnv } from "./helpers/get-env.js";
 
 import rootPkg from "../package.json" with {type: "json"};
 import BunLock from "../bun.lock";
+import { curl } from "./helpers/curl.js";
 
 
 type PackageJson = {
@@ -37,6 +38,14 @@ type PackageJson = {
 
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 type PublishPlatform = "npm" | "github" | string
+
+type GithubCommit = {
+  sha:string,
+  author: {
+    type: "User" | "Bot",
+    login: string
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getRegistry = (platform: PublishPlatform) => {
@@ -55,7 +64,17 @@ const getRegistry = (platform: PublishPlatform) => {
 class ReleaseManager {
   static async getCanaryVersion(latest: string) {
     const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
-    const previousSha = await Bun.file("LATEST_CANARY").text();
+    const repo = getEnv("GITHUB_REPOSITORY", true);
+    const repoUrl = `https://api.github.com/repos/${repo}/commits`;
+
+    let previousSha = "";
+    
+    const response = await curl<GithubCommit[]>(repoUrl);
+
+    if (response.body && response.body.length !== 0) {
+      const filter = response.body.filter(commit => commit.author.type !== "Bot");
+      if (filter.length > 0) previousSha = filter[0].sha.slice(0, 7);
+    }
 
     if (sha === previousSha) {
       console.log("[LOG]: Current commit sha is equal to latest published canary sha");
@@ -124,25 +143,17 @@ class ReleaseManager {
         throw new Error(`An unknown error was occurred with path - ${path}: ${e as string}`);
       }
     }
-
-    // Process.exit(1);
-  }
-
-  static async save(version: string, isCanary: boolean) {
-    const file = isCanary ? "LATEST_CANARY" : "LATEST";
-
-    await Bun.file(file).write(version);
   }
 }
 
 const main = async (): Promise<void> => {
-  if (!await Bun.file("LATEST").exists()) throw new Error("Couldn't find LATEST file");
-  if (!await Bun.file("LATEST_CANARY").exists()) throw new Error("Couldn't find LATEST_CANARY file");
+  if (!await Bun.file("LATEST").exists()) throw new Error("Couldn't find LATEST release");
 
   const isCanary = getEnv("IS_CANARY", true) === "true";
-  console.log("DEBUG IS_CANARY: ", isCanary, isCanary ? "canary" : "latest");
-
   const latest = await Bun.file("LATEST").text();
+  
+  console.log("DEBUG IS_CANARY: ", isCanary, isCanary ? "canary" : "latest");
+  
 
   const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
 
@@ -161,13 +172,16 @@ const main = async (): Promise<void> => {
 
   await ReleaseManager.update(BunLock, packagesPaths, version);
   await ReleaseManager.publish(packagesPaths, isCanary);
-  await ReleaseManager.save(version, isCanary);
 
   if (!isCanary) {
+    await Bun.file("LATEST").write(version);
+
     /* Write next version in root package.json */
     rootPkg.version = next as string;
     await Bun.file("package.json").write(JSON.stringify(rootPkg, null, 2));
   }
 };
+
+/* Возможно удалить, LATEST_CANARY или переработать, так как есть новый пуш и хэш сбивается*/
 
 await main();
