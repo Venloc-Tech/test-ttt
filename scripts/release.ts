@@ -76,10 +76,10 @@ class ReleaseManager {
       if (filter.length > 0) previousSha = filter[0].sha.slice(0, 7);
     }
 
-    if (sha === previousSha) {
-      console.log("[LOG]: Current commit sha is equal to latest published canary sha");
-      return process.exit(0);
-    }
+    // If (sha === previousSha) {
+    //   console.log("[LOG]: Current commit sha is equal to latest published canary sha");
+    //   return process.exit(0);
+    // }
 
     const date = dateFormatter.format(new Date());
 
