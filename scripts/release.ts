@@ -29,6 +29,7 @@ import { getEnv } from "./helpers/get-env.js";
 import rootPkg from "../package.json" with {type: "json"};
 import BunLock from "../bun.lock";
 import { curl } from "./helpers/curl.js";
+// Import { curl } from "./helpers/curl.js";
 
 
 type PackageJson = {
@@ -65,17 +66,29 @@ class ReleaseManager {
   static async getCanaryVersion(latest: string) {
     const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
 
+    const repo = getEnv("GITHUB_REPOSITORY", true);
+    const repoUrl = `https://api.github.com/repos/${repo}/commits`;
+
+    let commitShaToCanary = sha;
+
+    const response = await curl<GithubCommit[]>(repoUrl);
+
+    if (response.body && response.body.length !== 0) {
+      const filter = response.body.filter(commit => commit.author.type !== "Bot");
+      if (filter.length > 0) commitShaToCanary = filter[0].sha.slice(0, 7);
+    }
+
     const latestCanary = Bun.file("LATEST_CANARY");
     const previousSha = await latestCanary.exists() ? await latestCanary.text() : "";
 
-    if (sha === previousSha) {
+    if (commitShaToCanary === previousSha) {
       console.log("[LOG]: Current commit sha is equal to latest published canary sha");
       return process.exit(0);
     }
 
     const date = dateFormatter.format(new Date());
 
-    return [`${latest}-${date}-${sha}`, sha];
+    return [`${latest}-${date}-${commitShaToCanary}`, commitShaToCanary];
   }
 
   static getVersion(latest: string) {
