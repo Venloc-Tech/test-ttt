@@ -31,7 +31,6 @@ jobs:
   github:
     name: Release on github
     runs-on: ubuntu-latest
-    if: ${{ github.repository == env.GITHUB_REPOSITORY }}
     permissions:
       contents: write
       packages: write
@@ -46,6 +45,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 'v1.2.5'
+      - name: "Check repo"
+        if: ${{ github.repository != env.GITHUB_REPOSITORY }}
+        run: |
+          bun -e "process.exit(1)"
       - name: Install Dependencies
         run: bun install
         env:
