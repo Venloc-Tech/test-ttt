@@ -19,12 +19,12 @@ env:
 jobs:
   check-is-repository-allowed:
     name: Check repository
-    uses: ./.github/workflows/security/isAllowedRepository.yaml
+    uses: ./.github/workflows/.isAllowedRepository.yaml
     secrets: inherit
 
   check-if-user-allowed:
     name: Check user
-    uses: ./.github/workflows/security/isAllowedPublish.yaml
+    uses: ./.github/workflows/.isAllowedPublish.yaml
     secrets: inherit
 
 
