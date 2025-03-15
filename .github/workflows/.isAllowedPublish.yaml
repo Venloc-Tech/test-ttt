@@ -1,0 +1,22 @@
+name: Check if user can publish package
+
+on:
+  workflow_call:
+
+jobs:
+  check-user:
+    name: Workflow security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if publisher is allowed by ID
+        run: |
+          ALLOWED_USER_CHECK="${{ contains(fromJSON(vars.ALLOWED_PUBLISH_USER_IDS), github.actor_id) }}"
+          
+          if [ "$ALLOWED_USER_CHECK" = "true" ]; then
+            echo "User ID '${{ github.actor_id }}' is allowed to publish."
+            exit 0
+          else
+            echo "Error: User ID '${{ github.actor_id }}' is not allowed to publish." >&2
+            exit 1
+          fi

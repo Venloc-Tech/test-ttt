@@ -1,0 +1,19 @@
+name: Check if action run in root repository
+
+on:
+  workflow_call:
+
+jobs:
+  check-repository:
+    name: Workflow security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if repository is allowed
+        run: |
+          if [ "${{ github.repository }}" == "${{ vars.ACTION_REPOSITORY }}" ]; then
+              exit 0
+          else
+              echo "Error: Repositories do not match! Expected '${{ vars.ACTION_REPOSITORY }}', but got '${{ github.repository }}'." >&2
+              exit 1
+          fi

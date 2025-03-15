@@ -1,69 +1,79 @@
 name: Release
 
-env:
-  IS_CANARY: ${{ github.event.inputs.isCanary || true }}
-  NEXT_VERSION: ${{ github.event.inputs.next || '' }}
-  EXTRA_VERSION: ${{ github.event.inputs.unexcpectedVersion || '' }}
-  CANARY_STOP_VERSIONS: ${{ secrets.CANARY_STOP_VERSIONS || '' }}
-  GIT_ADD: ${{ github.event.inputs.isCanary == 'true' && 'LATEST_CANARY' || '.' }}
-  GITHUB_REPOSITORY: ${{ secrets.ACTION_REPOSITORY }}
-  SHA_COMMIT: ${{ github.sha }}
-
 on:
-  schedule:
-    - cron: "0 3 * * *" # every day at 6AM (GMT+3)
   workflow_dispatch:
     inputs:
-      isCanary:
-        description: Is this release canary?
-        type: boolean
-        required: true
       next:
-        description: What is the next release tag (e.g. "1.1.0")? Required in non canary Release
+        description: What is the next release tag (after this release, e.g. "1.1.0")?
         type: string
-        required: false
+        required: true
       unexcpectedVersion:
-        description: WARNING!!! This input is used for unexpected versions. For example, release should be with version 1.1.19, but you have breaking changes for release and set 1.2.0
+        description: WARNING!!! This input is used for unexpected versions. For example, release should be with version 1.1.16, but you have breaking changes for release and set 1.2.0
         type: string
         required: false
+
+env:
+  NEXT_VERSION: ${{ github.event.inputs.next }}
+  UNEXPECTED_VERSION: ${{ github.event.inputs.unexcpectedVersion }}
 
 jobs:
-  github:
-    name: Release on github
+  security:
+    name: Workflow security
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-    # if: ${{ github.repository == env.GITHUB_REPOSITORY }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 'v1.2.5'
-      - name: "Check repo"
-        if: ${{ github.repository != env.GITHUB_REPOSITORY }}
-        run: |
-          bun -e "process.exit(1)"
-      - name: Install Dependencies
-        run: bun install
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Release
-        run: bun scripts/release.ts
-      - name: Apply changes
-        #if: ${{ env.IS_CANARY != 'true' }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add $GIT_ADD
-          git commit -m "Bump version"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+      - name: Check repository
+        uses: ./.github/workflows/.isAllowedRespository.yaml
+        secrets: inherit
+
+      - name: Check repository
+        uses: ./.github/workflows/.isAllowedRespository.yaml
+        secrets: inherit
+
+
+#  publish:
+#    name: Release packages
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          ref: main
+#      - name: Setup Bun
+#        uses: oven-sh/setup-bun@v2
+#        with:
+#          bun-version: v1.2.5
+#      - name: Check action repo
+#        if: ${{ github.repository != vars.ACTIONS_REPOSITORY }}
+#        run: |
+#          bun -e 'throw new Error(`Repository dont match`)'
+#      - name: Install Dependencies
+#        run: bun install
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Release
+#        run: bun scripts/release.ts
+#
+#  update:
+#    name: Bump version in github
+#    runs-on: ubuntu-latest
+#    needs:
+#      - publish
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          ref: main
+#      - name: Setup Bun
+#        uses: oven-sh/setup-bun@v2
+#        with:
+#          bun-version: v1.2.5
+#      - name: Check repo
+#        if: ${{ github.repository != vars.ACTIONS_REPOSITORY }}
+#        run: |
+#          bun -e "process.exit(1)"
+#      - name: Install Dependencies
+#        run: bun install
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
