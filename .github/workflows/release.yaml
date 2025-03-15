@@ -17,17 +17,15 @@ env:
   UNEXPECTED_VERSION: ${{ github.event.inputs.unexcpectedVersion }}
 
 jobs:
-  security:
-    name: Workflow security
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check repository
-        uses: ./.github/workflows/.isAllowedRespository.yaml
-        secrets: inherit
+  check-is-repository-allowed:
+    name: Check repository
+    uses: ./.github/workflows/.isAllowedRepository.yaml
+    secrets: inherit
 
-      - name: Check repository
-        uses: ./.github/workflows/.isAllowedRespository.yaml
-        secrets: inherit
+  check-if-user-allowed:
+    name: Check user
+    uses: ./.github/workflows/.isAllowedPublish.yaml
+    secrets: inherit
 
 
 #  publish:
