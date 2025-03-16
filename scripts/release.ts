@@ -22,7 +22,6 @@
 import { cwd } from "process";
 import { join } from "path";
 
-// Import { dateFormatter } from "./helpers/date-format.js";
 import type { BunLockFile } from "./types/bunlock.js";
 import { getEnv } from "./helpers/get-env.js";
 
