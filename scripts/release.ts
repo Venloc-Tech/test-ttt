@@ -22,14 +22,12 @@
 import { cwd } from "process";
 import { join } from "path";
 
-import { dateFormatter } from "./helpers/date-format.js";
+// Import { dateFormatter } from "./helpers/date-format.js";
 import type { BunLockFile } from "./types/bunlock.js";
 import { getEnv } from "./helpers/get-env.js";
 
 import rootPkg from "../package.json" with {type: "json"};
 import BunLock from "../bun.lock";
-import { curl } from "./helpers/curl.js";
-// Import { curl } from "./helpers/curl.js";
 
 
 type PackageJson = {
@@ -37,63 +35,75 @@ type PackageJson = {
   version: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-type PublishPlatform = "npm" | "github" | string
+// // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+// type PublishPlatform = "npm" | "github" | string
+//
+// type GithubCommit = {
+//   sha:string,
+//   author: {
+//     type: "User" | "Bot",
+//     login: string
+//   }
+// }
+//
+// type GithubBranch = {
+//   name: string,
+//   commit: {
+//     sha: string,
+//     url: string
+//   },
+//   protected: boolean,
+//   protection_url: string
+// }
 
-type GithubCommit = {
-  sha:string,
-  author: {
-    type: "User" | "Bot",
-    login: string
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getRegistry = (platform: PublishPlatform) => {
-  switch (platform) {
-    case "github":
-      return "https://npm.pkg.github.com";
-    case "npm":
-      return "https://registry.npmjs.org/";
-
-    default:
-      throw new Error(`Unsupported platform: ${platform}`);
-  }
-};
+ 
+// Const getRegistry = (platform: PublishPlatform) => {
+//   switch (platform) {
+//     case "github":
+//       return "https://npm.pkg.github.com";
+//     case "npm":
+//       return "https://registry.npmjs.org/";
+//
+//     default:
+//       throw new Error(`Unsupported platform: ${platform}`);
+//   }
+// };
 
 
 class ReleaseManager {
-  static async getCanaryVersion(latest: string) {
+  static getCanaryVersion(latest: string) {
     const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
+    const random = Math.random().toString(36).substring(2, 9);
 
-    const repo = getEnv("GITHUB_REPOSITORY", true);
-    const repoUrl = `https://api.github.com/repos/${repo}/commits`;
+    // Const repo = getEnv("GITHUB_REPOSITORY", true);
+    // const repoUrl = `https://api.github.com/repos/${repo}/commits`;
+    //
+    // let commitShaToCanary = sha;
+    //
+    // const response = await curl<GithubCommit[]>(repoUrl);
+    //
+    // if (response.body && response.body.length !== 0) {
+    //   const filter = response.body.filter(commit => commit.author.type !== "Bot");
+    //   if (filter.length > 0) commitShaToCanary = filter[0].sha.slice(0, 7);
+    // }
+    //
+    // const latestCanary = Bun.file("LATEST_CANARY");
+    // const previousSha = await latestCanary.exists() ? await latestCanary.text() : "";
+    //
+    // if (commitShaToCanary === previousSha) {
+    //   console.log("[LOG]: Current commit sha is equal to latest published canary sha");
+    //   return process.exit(0);
+    // }
+    // 
+    // const date = dateFormatter.format(new Date());
 
-    let commitShaToCanary = sha;
-
-    const response = await curl<GithubCommit[]>(repoUrl);
-
-    if (response.body && response.body.length !== 0) {
-      const filter = response.body.filter(commit => commit.author.type !== "Bot");
-      if (filter.length > 0) commitShaToCanary = filter[0].sha.slice(0, 7);
-    }
-
-    const latestCanary = Bun.file("LATEST_CANARY");
-    const previousSha = await latestCanary.exists() ? await latestCanary.text() : "";
-
-    if (commitShaToCanary === previousSha) {
-      console.log("[LOG]: Current commit sha is equal to latest published canary sha");
-      return process.exit(0);
-    }
-
-    const date = dateFormatter.format(new Date());
-
-    return [`${latest}-${date}-${commitShaToCanary}`, commitShaToCanary];
+    return [`${latest}-${sha}+${random}`, sha];
   }
 
   static getVersion(latest: string) {
     const next = getEnv("NEXT_VERSION", true);
-    const extraVersion = getEnv("EXTRA_VERSION", false);
+    const extraVersion = getEnv("UNEXPECTED_VERSION", false) || "";
+
     const newVersion = rootPkg.version;
 
     const version = extraVersion ? extraVersion : newVersion;
@@ -154,26 +164,34 @@ class ReleaseManager {
 const main = async (): Promise<void> => {
   if (!await Bun.file("LATEST").exists()) throw new Error("Couldn't find LATEST release");
 
-  const isCanary = getEnv("IS_CANARY", true) === "true";
+  const isCanary = (getEnv("IS_CANARY", false) || "false") === "true";
   const latest = await Bun.file("LATEST").text();
+
+  if (isCanary) {
+    const rawStopList = getEnv("CANARY_STOP_VERSIONS", false) || "";
+
+    if (rawStopList) {
+      try {
+        const canaryStopList = JSON.parse(rawStopList) as string[];
+
+        if (canaryStopList.length !== 0 && canaryStopList.includes(latest)) {
+          console.log(`[LOG]: This version (${latest}) in canary stop list (won't be publish)`);
+          process.exit(0);
+        }
+      } catch (error) {
+        console.log(`[LOG]: An error was occurred with CANARY_STOP_VERSIONS`, error);
+        process.exit(1);
+      }
+    }
+  }
   
   console.log("DEBUG IS_CANARY: ", isCanary, isCanary ? "canary" : "latest");
-  
 
   const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
 
   const [version, nextOrSha] = isCanary
-    ? await ReleaseManager.getCanaryVersion(latest)
+    ? ReleaseManager.getCanaryVersion(latest)
     : ReleaseManager.getVersion(latest);
-  
-  if (isCanary) {
-    const canaryStopList = getEnv("CANARY_STOP_VERSIONS", false).split("|") || [];
-    
-    if (canaryStopList.length !== 0 && canaryStopList.includes(version)) {
-      console.log(`[LOG]: This version (${latest}) in canary stop list (won't be publish)`);
-      process.exit(0);
-    }
-  }
 
   await ReleaseManager.update(BunLock, packagesPaths, version);
   await ReleaseManager.publish(packagesPaths, isCanary);
@@ -182,14 +200,8 @@ const main = async (): Promise<void> => {
     /* Write next version in root package.json */
     rootPkg.version = nextOrSha;
     await Bun.file("package.json").write(JSON.stringify(rootPkg, null, 2));
+    await Bun.file("LATEST").write(version);
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  isCanary
-    ? await Bun.file("LATEST_CANARY").write(nextOrSha)
-    : await Bun.file("LATEST").write(version);
 };
-
-/* Возможно удалить, LATEST_CANARY или переработать, так как есть новый пуш и хэш сбивается*/
 
 await main();

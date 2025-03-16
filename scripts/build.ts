@@ -12,7 +12,7 @@ const banner =
 const normalize = (str: string) => str.split("\\").join("/");
 
 const build = async () => {
-  const entries = Object.keys(BunLock.workspaces).slice(1)
+  const entries = Object.keys(BunLock.workspaces).slice(1);
 
   /* If we don't collect all workspace packages ...*/
   const workspacePackages = Object
@@ -22,13 +22,13 @@ const build = async () => {
     .filter(Boolean) as string[];
 
   for (const dir of entries) {
-    const entry = [normalize(join(dir, "src", "index.ts"))]
-    const dtsEntry = entry.concat(normalize(join(dir, "src", "**/*@(ts|tsx)")));
-    const tsconfig = normalize(join(dir, "tsconfig.json"))
-    const dist = normalize(join(dir, "dist"))
+    const entry = [normalize(join(dir, "src", "index.ts"))];
+    const allEntry = entry.concat(normalize(join(dir, "src", "**/*@(ts|tsx)")));
+    const tsconfig = normalize(join(dir, "tsconfig.json"));
+    const dist = normalize(join(dir, "dist"));
 
     try {
-      await Bun.$`rm -rf ${dist}`
+      await Bun.$`rm -rf ${dist}`;
     } catch {}
 
     const base: Partial<TsupOptions> = {
@@ -39,14 +39,14 @@ const build = async () => {
       esbuildOptions: (options) => {
         options.packages = "external";
       },
-    }
+    };
 
     await TsupBuild({
-      entry: dtsEntry,
-      dts: {only: true, banner},
+      entry: allEntry,
+      dts: { only: true, banner },
       bundle: false,
-      ...base
-    })
+      ...base,
+    });
 
     await TsupBuild({
       entry: entry,

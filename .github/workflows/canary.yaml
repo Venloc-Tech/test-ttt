@@ -1,0 +1,42 @@
+name: Release Canary
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # every day at 6AM (GMT+3)
+  workflow_dispatch:
+
+env:
+  IS_CANARY: true
+  CANARY_STOP_VERSIONS: ${{ vars.CANARY_STOP_VERSIONS }}
+
+jobs:
+  check-is-repository-allowed:
+    name: Check repository
+    uses: ./.github/workflows/.isAllowedRepository.yaml
+    secrets: inherit
+
+  check-if-user-allowed:
+    name: Check user
+    if: ${{ github.event_name != 'schedule' }}
+    uses: ./.github/workflows/.isAllowedPublish.yaml
+    secrets: inherit
+
+  publish:
+    name: Publish canary packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: v1.2.5
+      - name: Install Dependencies
+        run: bun install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release canary
+        run: bun scripts/release.ts
