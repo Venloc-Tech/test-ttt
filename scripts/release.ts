@@ -174,8 +174,8 @@ const main = async (): Promise<void> => {
       try {
         const canaryStopList = JSON.parse(rawStopList) as string[];
 
-        if (canaryStopList.length !== 0 && canaryStopList.includes(latest)) {
-          console.log(`[LOG]: This version (${latest}) in canary stop list (won't be publish)`);
+        if (canaryStopList.length !== 0 && canaryStopList.includes(rootPkg.version)) {
+          console.log(`[LOG]: This version (${rootPkg.version}) in canary stop list (won't be publish)`);
           process.exit(0);
         }
       } catch (error) {
