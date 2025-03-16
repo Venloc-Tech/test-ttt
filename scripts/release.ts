@@ -40,7 +40,7 @@ class ReleaseManager {
     const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
     const random = Math.random().toString(36).substring(2, 9);
 
-    return [`${latest}-${sha}+${random}`, sha];
+    return [`${latest}-${sha}-${random}`, sha];
   }
 
   static getVersion(latest: string) {
