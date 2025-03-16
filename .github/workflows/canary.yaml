@@ -42,5 +42,8 @@ jobs:
         run: bun install
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build packages
+        run: bun scripts/build.ts
       - name: Release canary
+        if: ${{ success() }}
         run: bun scripts/release.ts

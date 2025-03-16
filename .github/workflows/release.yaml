@@ -49,15 +49,20 @@ jobs:
         run: bun install
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build packages
+        run: bun scripts/build.ts
       - name: Release latest
+        if: ${{ success() }}
         run: bun scripts/release.ts
       - name: Add changes to git
+        if: ${{ success() }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "Bump version"
       - name: Push changes
+        if: ${{ success() }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
