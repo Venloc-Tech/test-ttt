@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Check if repository is allowed
         run: |
-          if [ "${{ github.repository }},," == "${{ vars.ACTION_REPOSITORY }},," ]; then
+          if [ "${{ github.repository }}" == "${{ vars.ACTION_REPOSITORY }}" ]; then
               exit 0
           else
               echo "Error: Repositories do not match! Expected '${{ vars.ACTION_REPOSITORY }}', but got '${{ github.repository }}'." >&2
