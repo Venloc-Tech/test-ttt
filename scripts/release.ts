@@ -34,24 +34,32 @@ type PackageJson = {
   version: string;
 }
 
+enum Environment {
+  SHA_COMMIT = "SHA_COMMIT",
+  NEXT_VERSION = "NEXT_VERSION",
+  UNEXPECTED_VERSION = "UNEXPECTED_VERSION",
+  IS_CANARY = "IS_CANARY",
+  CANARY_STOP_VERSIONS = "CANARY_STOP_VERSIONS"
+}
+
 class ReleaseManager {
   static getCanaryVersion(latest: string) {
-    const sha = getEnv("SHA_COMMIT", true).slice(0, 7);
+    const sha = getEnv(Environment.SHA_COMMIT, true).slice(0, 7);
     const random = Math.random().toString(36).substring(2, 9);
 
     return [`${latest}-${sha}-${random}`, sha];
   }
 
   static getVersion(latest: string) {
-    const next = getEnv("NEXT_VERSION", true);
-    const extraVersion = getEnv("UNEXPECTED_VERSION", false) || "";
+    const next = getEnv(Environment.NEXT_VERSION, true);
+    const extraVersion = getEnv(Environment.UNEXPECTED_VERSION, false) || "";
 
     const newVersion = rootPkg.version;
 
     const version = extraVersion ? extraVersion : newVersion;
     
-    if (Bun.semver.order(latest, version) !== -1) throw new Error(`Release version must be greater than latest: ${latest}`);
-    if (Bun.semver.order(version, next) !== -1) throw new Error(`Next version must be greater than release version: ${version}`);
+    if (Bun.semver.order(latest, version) !== -1) throw new Error(`Release version must be greater than latest: ${latest}, get ${version}`);
+    if (Bun.semver.order(version, next) !== -1) throw new Error(`Next version must be greater than release version: ${version}, get ${next}`);
 
     return [version, next];
   }
@@ -106,11 +114,11 @@ class ReleaseManager {
 const main = async (): Promise<void> => {
   if (!await Bun.file("LATEST").exists()) throw new Error("Couldn't find LATEST release");
 
-  const isCanary = (getEnv("IS_CANARY", false) || "false") === "true";
+  const isCanary = (getEnv(Environment.IS_CANARY, false) || "false") === "true";
   const latest = await Bun.file("LATEST").text();
 
   if (isCanary) {
-    const rawStopList = getEnv("CANARY_STOP_VERSIONS", false) || "";
+    const rawStopList = getEnv(Environment.CANARY_STOP_VERSIONS, false) || "";
 
     if (rawStopList) {
       try {
@@ -121,13 +129,11 @@ const main = async (): Promise<void> => {
           process.exit(0);
         }
       } catch (error) {
-        console.log(`[LOG]: An error was occurred with CANARY_STOP_VERSIONS`, error);
+        console.error(`[ERROR]: An error was occurred with CANARY_STOP_VERSIONS`, error);
         process.exit(1);
       }
     }
   }
-  
-  console.log("DEBUG IS_CANARY: ", isCanary, isCanary ? "canary" : "latest");
 
   const packagesPaths = ReleaseManager.getPackagesPaths(BunLock);
 
