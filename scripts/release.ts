@@ -22,17 +22,13 @@
 import { cwd } from "process";
 import { join } from "path";
 
+import type { PackageJson } from "./types/package-json.js";
 import type { BunLockFile } from "./types/bunlock.js";
 import { getEnv } from "./helpers/get-env.js";
 
 import rootPkg from "../package.json" with {type: "json"};
 import BunLock from "../bun.lock";
 
-
-type PackageJson = {
-  name: string;
-  version: string;
-}
 
 enum Environment {
   SHA_COMMIT = "SHA_COMMIT",
