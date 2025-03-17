@@ -5,15 +5,20 @@
   "version": "1.3.0",
   "private": true,
   "eslintConfig": "eslint.config.ts",
+  "lint-staged": {},
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "lint": "",
+    "lint:fix": "",
+    "build": "",
+    "release": "",
+    "test": ""
+  },
   "devDependencies": {
-    "@eslint/compat": "^1.2.7",
-    "@stylistic/eslint-plugin-js": "^4.2.0",
-    "@stylistic/eslint-plugin-jsx": "^4.2.0",
     "@types/bun": "latest",
-    "@venloc-tech/typelint": "^1.0.0",
+    "@venloc-tech/typelint": "1.0.1",
     "eslint": "^9.22.0",
     "jiti": "^2.4.2",
     "tsup": "^8.4.0",
