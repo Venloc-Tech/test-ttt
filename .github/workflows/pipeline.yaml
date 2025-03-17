@@ -1,0 +1,35 @@
+name: Update checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pipeline:
+    name: Check pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: v1.2.5
+      - name: Install Dependencies
+        run: bun install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build packages
+        run: bun run build
+
+      - name: Test packages
+        if: ${{ success() }}
+        run: bun run test
+
+      - name: Lint packages
+        if: ${{ success() }}
+        run: bun run lint
