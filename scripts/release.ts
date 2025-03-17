@@ -39,7 +39,8 @@ enum Environment {
   NEXT_VERSION = "NEXT_VERSION",
   UNEXPECTED_VERSION = "UNEXPECTED_VERSION",
   IS_CANARY = "IS_CANARY",
-  CANARY_STOP_VERSIONS = "CANARY_STOP_VERSIONS"
+  CANARY_STOP_VERSIONS = "CANARY_STOP_VERSIONS",
+  IS_DRY_RUN = "IS_DRY_RUN",
 }
 
 class ReleaseManager {
@@ -96,14 +97,13 @@ class ReleaseManager {
     const isConfigExist = await Bun.file(configPath).exists();
 
     const configArg = isConfigExist ? `-c ${configPath}` : "";
+    const dryRunArg = (getEnv(Environment.IS_DRY_RUN, false) || "false") === "true" ? "--dry-run" : "";
 
-    const args = `--tag ${tag} ${configArg}`;
-
-    console.log(args, `bun publish ${args} --dry-run`, `bun publish --tag ${tag} ${configArg} --dry-run`);
+    console.log(`bun publish --tag ${tag} ${configArg} ${dryRunArg}`);
 
     for (const path of packagesPaths) {
       try {
-        await Bun.$`bun publish --tag ${tag} ${configArg} --dry-run`.cwd(path);
+        await Bun.$`bun publish --tag ${tag} ${configArg} ${dryRunArg}`.cwd(path);
       } catch (e) {
         throw new Error(`An unknown error was occurred with path - ${path}: ${e as string}`);
       }

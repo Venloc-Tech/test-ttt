@@ -16,10 +16,16 @@ on:
         '
         type: string
         required: false
+      dryRun:
+        description: Set true if it is test release
+        type: boolean
+        required: false
+        default: false
 
 env:
   NEXT_VERSION: ${{ github.event.inputs.next }}
   UNEXPECTED_VERSION: ${{ github.event.inputs.unexcpectedVersion }}
+  IS_DRY_RUN: ${{ github.event.inputs.dryRun }}
 
 jobs:
   check-is-repository-allowed:

@@ -4,9 +4,16 @@ on:
   schedule:
     - cron: "0 3 * * *" # every day at 6AM (GMT+3)
   workflow_dispatch:
+    inputs:
+      dryRun:
+        description: Set true if it is test release
+        type: boolean
+        required: false
+        default: false
 
 env:
   IS_CANARY: true
+  IS_DRY_RUN: ${{ github.event.inputs.dryRun }}
   SHA_COMMIT: ${{ github.sha }}
   CANARY_STOP_VERSIONS: ${{ vars.CANARY_STOP_VERSIONS }}
 
