@@ -60,7 +60,10 @@ function processScope(scope: string, config: string | ScopeConfigObject): string
     }
   }
 
-  return [...npmrcLines, ...authLines].join("\n");
+  return [
+    ...npmrcLines,
+    ...authLines,
+  ].join("\n");
 }
 
 type ParsedToml = {install: {scopes: Record<string, string | ScopeConfigObject>}}
