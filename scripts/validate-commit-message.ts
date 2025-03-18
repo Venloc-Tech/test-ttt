@@ -1,5 +1,3 @@
-import * as process from "node:process";
-
 const commitType = /(?<type>build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)/;
 const commitScope = /(?<scope>\((?:@[a-z0-9._-]+\/[a-z0-9._-]+|[a-z0-9._-]+)(?:(?:;)(?:@[a-z0-9._-]+\/[a-z0-9._-]+|[a-z0-9._-]+))*\))/;
 const commitBreaking = /(?<breaking>!)/;
@@ -23,6 +21,7 @@ if (commitMessage.startsWith("@")) {
   console.log(`[LOG]: Your commit: ${commitMessage}`);
   /* Write commit to file without @ */
   await commitFile.write(commitMessage.slice(1));
+  process.exit(0);
 }
 
 const matchTest = commitRegex.test(commitMessage);
