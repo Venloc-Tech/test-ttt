@@ -67,7 +67,6 @@ type ParsedToml = {install: {scopes: Record<string, string | ScopeConfigObject>}
 
 async function generateNpmrc(npmrcPath: string): Promise<void> {
 
-   
   const parsedToml: ParsedToml = bunfig as ParsedToml;
 
 
