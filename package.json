@@ -6,7 +6,7 @@
   "private": true,
   "eslintConfig": "eslint.config.ts",
   "lint-staged": {
-    "**/*.{ts,tsx,js,jsx}": "eslint --fix"
+    "**/*.{ts,tsx,js,jsx}": "eslint --cache --fix"
   },
   "workspaces": [
     "packages/*"
