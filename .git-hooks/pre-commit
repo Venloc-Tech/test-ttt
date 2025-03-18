@@ -1,2 +1,5 @@
 #!/bin/sh
+Cyan='\033[0;36m'
+Color_Off='\033[0m'
+printf "${Cyan}Pre commit hook started${Color_Off}\n"
 bunx --bun lint-staged
