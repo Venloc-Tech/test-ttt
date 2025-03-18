@@ -69,10 +69,8 @@ async function generateNpmrc(npmrcPath: string): Promise<void> {
 
   const parsedToml: ParsedToml = bunfig as ParsedToml;
 
-
   if (!parsedToml.install || !parsedToml.install.scopes) {
-    console.error("В bunfig.toml отсутствует секция install.scopes");
-    return;
+    return console.error("В bunfig.toml отсутствует секция install.scopes");
   }
 
   const scopes = parsedToml.install.scopes;
