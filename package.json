@@ -5,22 +5,26 @@
   "version": "1.3.0",
   "private": true,
   "eslintConfig": "eslint.config.ts",
-  "lint-staged": {},
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx}": "eslint --fix"
+  },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "lint": "",
-    "lint:fix": "",
-    "build": "",
-    "release": "",
-    "test": ""
+    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
+    "lint": "echo success",
+    "lint:fix": "echo success",
+    "build": "echo success",
+    "release": "echo success",
+    "test": "echo success"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@venloc-tech/typelint": "1.0.1",
     "eslint": "^9.22.0",
     "jiti": "^2.4.2",
+    "lint-staged": "^15.5.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"
