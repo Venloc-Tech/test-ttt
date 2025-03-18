@@ -1,4 +1,4 @@
-import tseslint from "typescript-eslint"
+import tseslint from "typescript-eslint";
 import VenlocRecommended from "@venloc-tech/typelint";
 
-export default tseslint.config(VenlocRecommended)
+export default tseslint.config(VenlocRecommended);
