@@ -5,7 +5,7 @@
       "name": "build-bin-workspace",
       "devDependencies": {
         "@types/bun": "latest",
-        "@venloc-tech/typelint": "1.0.1",
+        "@venloc-tech/typelint": "^1.0.2",
         "eslint": "^9.22.0",
         "jiti": "^2.4.2",
         "lint-staged": "^15.5.0",
@@ -197,7 +197,7 @@
 
     "@venloc-tech/package-b": ["@venloc-tech/package-b@workspace:packages/package-b"],
 
-    "@venloc-tech/typelint": ["@venloc-tech/typelint@1.0.1", "https://npm.pkg.github.com/download/@venloc-tech/typelint/1.0.1/d3ceb7b0f2f6e9dcbce4fc1bc4a71ff3ae7b1d26", { "dependencies": { "@eslint/compat": "^1.2.7", "@eslint/js": "^9.21.0", "@stylistic/eslint-plugin-js": "^4.2.0", "@stylistic/eslint-plugin-jsx": "^4.2.0" } }, "sha512-9OBp1vsk9g2mHt9drerXnsUOdyd3Pfxeb2lBLg1AOq4gg52XxeYtx3/HuHe38ODsX896uKjXK9a1kkQMoP6/4g=="],
+    "@venloc-tech/typelint": ["@venloc-tech/typelint@1.0.2", "https://npm.pkg.github.com/download/@venloc-tech/typelint/1.0.2/8175face136d966acecd2c5ec29c1869846f288a", { "dependencies": { "@eslint/compat": "^1.2.7", "@eslint/js": "^9.21.0", "@stylistic/eslint-plugin-js": "^4.2.0", "@stylistic/eslint-plugin-jsx": "^4.2.0" } }, "sha512-/JghWLBbuJUbjAI1SE9agpfobKDJWY1bfZ3hnJnNveZQJSVRfAGklwiP52lAhcwq34aTqKp62U8vzKsbrq/oyg=="],
 
     "acorn": ["acorn@8.14.1", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg=="],
 
