@@ -25,7 +25,7 @@ jobs:
 
   check-if-user-allowed:
     name: Check user
-    if: ${{ github.event_name != 'workflow_dispatch' }}
+    if: ${{ github.event_name != 'schedule' }}
     uses: ./.github/workflows/.isAllowedPublish.yaml
     secrets: inherit
 
