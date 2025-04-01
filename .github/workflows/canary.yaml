@@ -35,7 +35,7 @@ jobs:
     needs:
       - check-is-repository-allowed
       - check-if-user-allowed
-    if: ${{success() || (needs.check-if-user-allowed.result == 'skipped' && success())}}
+    if: ${{ always() && needs.check-is-repository-allowed.result == 'success' }}
 
     steps:
       - name: Checkout
